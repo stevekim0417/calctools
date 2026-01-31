@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 US Federal Income Tax Calculator - Free Tax Estimator | CalcTools</title>
+  <meta name="description" content="Free 2026 US federal income tax calculator. Estimate your taxes based on the latest IRS brackets. See effective tax rate and take-home pay.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇺🇸</text></svg>">
+  <style>
+    .bracket-bar { margin-bottom: 12px; }
+    .bracket-info { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
+    .bracket-track { height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+    .bracket-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .b10 { background: #48bb78; } .b12 { background: #38b2ac; } .b22 { background: #4299e1; }
+    .b24 { background: #667eea; } .b32 { background: #9f7aea; } .b35 { background: #ed64a6; } .b37 { background: #f56565; }
+    .tax-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 15px; }
+    .tax-table th, .tax-table td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .tax-table th { background: #f7fafc; font-weight: 600; }
+    .disclaimer { background: #fffaf0; border: 1px solid #ed8936; border-radius: 10px; padding: 15px; margin-top: 20px; font-size: 0.85rem; color: #744210; }
+    .badge-update { display: inline-block; background: #48bb78; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <a href="../" class="logo">🧮 CalcTools</a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="../">Home</a></li>
+          <li><a href="compound-interest.html">Compound Interest</a></li>
+          <li><a href="salary-to-hourly.html">Salary</a></li>
+          <li><a href="us-tax-2026.html">Tax 2026</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-header" style="background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);">
+    <span class="badge-update">✓ Updated for Tax Year 2026</span>
+    <h1>🇺🇸 2026 US Federal Tax Calculator</h1>
+    <p>Estimate your federal taxes based on the latest IRS brackets</p>
+  </div>
+
+  <main class="container">
+    <div class="card">
+      <div class="input-group">
+        <label>Annual Gross Income ($)</label>
+        <input type="text" id="income" placeholder="75,000" inputmode="numeric">
+      </div>
+      
+      <div class="row">
+        <div class="input-group">
+          <label>Filing Status</label>
+          <select id="filingStatus">
+            <option value="single">Single</option>
+            <option value="married">Married Filing Jointly</option>
+            <option value="head">Head of Household</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Deduction Type</label>
+          <select id="deductionType">
+            <option value="standard">Standard Deduction</option>
+            <option value="itemized">Itemized Deductions</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="input-group hidden" id="itemizedGroup">
+        <label>Total Itemized Deductions ($)</label>
+        <input type="text" id="itemizedAmount" placeholder="25,000" inputmode="numeric">
+      </div>
+      
+      <button class="btn btn-primary" onclick="calculate()">Calculate My Taxes</button>
+    </div>
+    
+    <div class="result-card hidden" id="resultCard" style="background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);">
+      <div class="result-header">
+        <div class="result-label">Estimated Federal Tax</div>
+        <div class="result-value" id="totalTax">$0</div>
+        <div style="opacity:0.9;">Effective Tax Rate: <strong id="effectiveRate">0%</strong></div>
+      </div>
+      
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="result-item-value" id="takeHome">$0</div>
+          <div class="result-item-label">Take-Home (Annual)</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="monthlyTakeHome">$0</div>
+          <div class="result-item-label">Monthly Take-Home</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="taxableIncome">$0</div>
+          <div class="result-item-label">Taxable Income</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="deductionUsed">$0</div>
+          <div class="result-item-label">Deduction Applied</div>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <div style="font-weight:600; margin-bottom:15px;">📊 Tax Bracket Breakdown</div>
+        <div id="bracketBreakdown"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="info-box">
+        <h3>📋 2026 Federal Tax Brackets</h3>
+        <p>Updated per IRS Revenue Procedure 2025-32:</p>
+        <table class="tax-table">
+          <thead><tr><th>Rate</th><th>Single</th><th>Married Filing Jointly</th></tr></thead>
+          <tbody>
+            <tr><td>10%</td><td>$0 – $12,400</td><td>$0 – $24,800</td></tr>
+            <tr><td>12%</td><td>$12,401 – $50,400</td><td>$24,801 – $100,800</td></tr>
+            <tr><td>22%</td><td>$50,401 – $105,700</td><td>$100,801 – $211,400</td></tr>
+            <tr><td>24%</td><td>$105,701 – $201,775</td><td>$211,401 – $403,550</td></tr>
+            <tr><td>32%</td><td>$201,776 – $256,225</td><td>$403,551 – $512,450</td></tr>
+            <tr><td>35%</td><td>$256,226 – $640,600</td><td>$512,451 – $768,700</td></tr>
+            <tr><td>37%</td><td>$640,601+</td><td>$768,701+</td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="info-box" style="margin-top:15px;">
+        <h3>📝 2026 Standard Deductions</h3>
+        <ul style="margin-left:20px; margin-top:10px;">
+          <li><strong>Single:</strong> $16,100</li>
+          <li><strong>Married Filing Jointly:</strong> $32,200</li>
+          <li><strong>Head of Household:</strong> $24,150</li>
+        </ul>
+      </div>
+      
+      <div class="disclaimer">
+        <strong>⚠️ Disclaimer:</strong> This calculator estimates federal income tax only. It does not include state taxes, FICA (Social Security & Medicare), local taxes, or credits. Consult a tax professional for personalized advice.
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CalcTools. Free online calculators for everyone.</p>
+  </footer>
+
+  <script>
+    const TAX_BRACKETS = {
+      single: [
+        { min: 0, max: 12400, rate: 0.10 }, { min: 12400, max: 50400, rate: 0.12 },
+        { min: 50400, max: 105700, rate: 0.22 }, { min: 105700, max: 201775, rate: 0.24 },
+        { min: 201775, max: 256225, rate: 0.32 }, { min: 256225, max: 640600, rate: 0.35 },
+        { min: 640600, max: Infinity, rate: 0.37 }
+      ],
+      married: [
+        { min: 0, max: 24800, rate: 0.10 }, { min: 24800, max: 100800, rate: 0.12 },
+        { min: 100800, max: 211400, rate: 0.22 }, { min: 211400, max: 403550, rate: 0.24 },
+        { min: 403550, max: 512450, rate: 0.32 }, { min: 512450, max: 768700, rate: 0.35 },
+        { min: 768700, max: Infinity, rate: 0.37 }
+      ],
+      head: [
+        { min: 0, max: 17700, rate: 0.10 }, { min: 17700, max: 67450, rate: 0.12 },
+        { min: 67450, max: 105700, rate: 0.22 }, { min: 105700, max: 201775, rate: 0.24 },
+        { min: 201775, max: 256200, rate: 0.32 }, { min: 256200, max: 640600, rate: 0.35 },
+        { min: 640600, max: Infinity, rate: 0.37 }
+      ]
+    };
+    const STANDARD_DEDUCTIONS = { single: 16100, married: 32200, head: 24150 };
+    
+    function formatCurrency(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
+    function parseNumber(str) { return parseFloat(str.replace(/[^0-9.-]/g, '')) || 0; }
+    
+    document.getElementById('income').addEventListener('input', function() {
+      let value = this.value.replace(/[^0-9]/g, '');
+      if (value) this.value = parseInt(value).toLocaleString('en-US');
+    });
+    document.getElementById('itemizedAmount').addEventListener('input', function() {
+      let value = this.value.replace(/[^0-9]/g, '');
+      if (value) this.value = parseInt(value).toLocaleString('en-US');
+    });
+    document.getElementById('deductionType').addEventListener('change', function() {
+      document.getElementById('itemizedGroup').classList.toggle('hidden', this.value !== 'itemized');
+    });
+    
+    function calculateTax(taxableIncome, brackets) {
+      let tax = 0, breakdown = [], remaining = taxableIncome;
+      for (let i = 0; i < brackets.length && remaining > 0; i++) {
+        const bracket = brackets[i];
+        const taxableInBracket = Math.min(remaining, bracket.max - bracket.min);
+        const taxInBracket = taxableInBracket * bracket.rate;
+        if (taxableInBracket > 0) breakdown.push({ rate: bracket.rate, amount: taxableInBracket, tax: taxInBracket });
+        tax += taxInBracket;
+        remaining -= taxableInBracket;
+      }
+      return { tax, breakdown };
+    }
+    
+    function calculate() {
+      const income = parseNumber(document.getElementById('income').value);
+      const filingStatus = document.getElementById('filingStatus').value;
+      const deductionType = document.getElementById('deductionType').value;
+      if (!income) { alert('Please enter your income.'); return; }
+      
+      let deduction = deductionType === 'standard' ? STANDARD_DEDUCTIONS[filingStatus] : Math.max(parseNumber(document.getElementById('itemizedAmount').value), STANDARD_DEDUCTIONS[filingStatus]);
+      const taxableIncome = Math.max(0, income - deduction);
+      const { tax, breakdown } = calculateTax(taxableIncome, TAX_BRACKETS[filingStatus]);
+      const takeHome = income - tax;
+      const effectiveRate = income > 0 ? (tax / income * 100) : 0;
+      
+      document.getElementById('resultCard').classList.remove('hidden');
+      document.getElementById('totalTax').textContent = formatCurrency(tax);
+      document.getElementById('effectiveRate').textContent = effectiveRate.toFixed(1) + '%';
+      document.getElementById('takeHome').textContent = formatCurrency(takeHome);
+      document.getElementById('monthlyTakeHome').textContent = formatCurrency(takeHome / 12);
+      document.getElementById('taxableIncome').textContent = formatCurrency(taxableIncome);
+      document.getElementById('deductionUsed').textContent = formatCurrency(deduction);
+      
+      const container = document.getElementById('bracketBreakdown');
+      container.innerHTML = '';
+      const colors = ['b10', 'b12', 'b22', 'b24', 'b32', 'b35', 'b37'];
+      breakdown.forEach((item, i) => {
+        const pct = tax > 0 ? (item.tax / tax * 100) : 0;
+        container.innerHTML += `<div class="bracket-bar"><div class="bracket-info"><span style="font-weight:600">${Math.round(item.rate*100)}% Bracket</span><span>${formatCurrency(item.tax)} on ${formatCurrency(item.amount)}</span></div><div class="bracket-track"><div class="bracket-fill ${colors[i]}" style="width:${pct}%"></div></div></div>`;
+      });
+    }
+  </script>
+</body>
+</html>

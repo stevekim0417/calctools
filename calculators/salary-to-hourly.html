@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salary to Hourly Calculator - Convert Annual to Hourly Rate | CalcTools</title>
+  <meta name="description" content="Free salary to hourly calculator. Convert your annual salary to hourly wage instantly. See daily, weekly, and monthly breakdowns.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>">
+  <style>
+    .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+    .tab { flex: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; background: #fff; color: #718096; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; }
+    .tab.active { border-color: var(--primary); color: var(--primary); background: #ebf8ff; }
+    .stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .stat-row:last-child { border-bottom: none; }
+    .coffee-box { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center; }
+    .coffee-value { font-size: 1.3rem; font-weight: 600; }
+    .info-text { font-size: 0.8rem; color: #718096; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <a href="../" class="logo">🧮 CalcTools</a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="../">Home</a></li>
+          <li><a href="compound-interest.html">Compound Interest</a></li>
+          <li><a href="salary-to-hourly.html">Salary</a></li>
+          <li><a href="us-tax-2026.html">Tax 2026</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-header" style="background: linear-gradient(135deg, #276749 0%, #48bb78 100%);">
+    <h1>💼 Salary to Hourly Calculator</h1>
+    <p>Find out what you really earn per hour</p>
+  </div>
+
+  <main class="container">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-type="yearly">Annual Salary</button>
+        <button class="tab" data-type="monthly">Monthly Salary</button>
+      </div>
+      
+      <div class="input-group">
+        <label id="salaryLabel">Annual Salary ($)</label>
+        <input type="text" id="salary" placeholder="75,000" inputmode="numeric">
+      </div>
+      
+      <div class="row">
+        <div class="input-group">
+          <label>Work Days per Week</label>
+          <select id="daysPerWeek">
+            <option value="5" selected>5 days</option>
+            <option value="4">4 days</option>
+            <option value="6">6 days</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Hours per Day</label>
+          <select id="hoursPerDay">
+            <option value="8" selected>8 hours</option>
+            <option value="7">7 hours</option>
+            <option value="9">9 hours</option>
+            <option value="10">10 hours</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label>Paid Time Off (Days/Year)</label>
+        <input type="number" id="ptodays" value="15" min="0" max="60">
+        <div class="info-text">Vacation + sick days + holidays</div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="calculate()">Calculate Hourly Rate</button>
+    </div>
+    
+    <div class="result-card hidden" id="resultCard" style="background: linear-gradient(135deg, #276749 0%, #48bb78 100%);">
+      <div class="result-header">
+        <div class="result-label">Your Hourly Rate</div>
+        <div class="result-value" id="hourlyRate">$0</div>
+        <div style="opacity:0.8; font-size:0.95rem;">per hour</div>
+      </div>
+      
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="result-item-value" id="dailyRate">$0</div>
+          <div class="result-item-label">Daily</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="weeklyRate">$0</div>
+          <div class="result-item-label">Weekly</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="monthlyRate">$0</div>
+          <div class="result-item-label">Monthly</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="yearlyRate">$0</div>
+          <div class="result-item-label">Yearly</div>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.2);">
+        <div style="text-align:center; opacity:0.8; margin-bottom:15px;">📊 Your Work Stats</div>
+        <div class="stat-row">
+          <span>Total Work Hours/Year</span>
+          <strong id="totalHours">0 hrs</strong>
+        </div>
+        <div class="stat-row">
+          <span>Earnings per Minute</span>
+          <strong id="perMinute">$0</strong>
+        </div>
+        <div class="stat-row">
+          <span>vs. Federal Minimum ($7.25)</span>
+          <strong id="minWageRatio">0x</strong>
+        </div>
+      </div>
+      
+      <div class="coffee-box">
+        <div style="opacity:0.8;">☕ Time to earn a $5 coffee</div>
+        <div class="coffee-value" id="coffeeTime">0 min</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="info-box">
+        <h3>💡 How We Calculate</h3>
+        <p>Your hourly rate = Annual Salary ÷ Total Working Hours. We subtract PTO days from 52 weeks to get your actual work days, then multiply by hours per day.</p>
+        <p style="margin-top:10px;"><strong>Tip:</strong> Use this to evaluate overtime pay, freelance rates, or compare job offers!</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CalcTools. Free online calculators for everyone.</p>
+  </footer>
+
+  <script>
+    const MIN_WAGE_US = 7.25;
+    let salaryType = 'yearly';
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        salaryType = this.dataset.type;
+        document.getElementById('salaryLabel').textContent = salaryType === 'yearly' ? 'Annual Salary ($)' : 'Monthly Salary ($)';
+        document.getElementById('salary').placeholder = salaryType === 'yearly' ? '75,000' : '6,000';
+      });
+    });
+    
+    function formatNumber(num) { return Math.round(num).toLocaleString('en-US'); }
+    function formatCurrency(num) { return '$' + formatNumber(num); }
+    function parseNumber(str) { return parseFloat(str.replace(/[^0-9.-]/g, '')) || 0; }
+    
+    document.getElementById('salary').addEventListener('input', function() {
+      let value = this.value.replace(/[^0-9]/g, '');
+      if (value) this.value = parseInt(value).toLocaleString('en-US');
+    });
+    
+    function calculate() {
+      let salary = parseNumber(document.getElementById('salary').value);
+      const daysPerWeek = parseInt(document.getElementById('daysPerWeek').value);
+      const hoursPerDay = parseInt(document.getElementById('hoursPerDay').value);
+      const ptoDays = parseInt(document.getElementById('ptodays').value) || 0;
+      
+      if (!salary) { alert('Please enter your salary.'); return; }
+      
+      let yearlySalary = salaryType === 'yearly' ? salary : salary * 12;
+      const totalWorkDays = (52 * daysPerWeek) - ptoDays;
+      const totalHours = totalWorkDays * hoursPerDay;
+      
+      const hourlyRate = yearlySalary / totalHours;
+      const dailyRate = hourlyRate * hoursPerDay;
+      const weeklyRate = dailyRate * daysPerWeek;
+      const monthlyRate = yearlySalary / 12;
+      
+      document.getElementById('resultCard').classList.remove('hidden');
+      document.getElementById('hourlyRate').textContent = '$' + hourlyRate.toFixed(2);
+      document.getElementById('dailyRate').textContent = formatCurrency(dailyRate);
+      document.getElementById('weeklyRate').textContent = formatCurrency(weeklyRate);
+      document.getElementById('monthlyRate').textContent = formatCurrency(monthlyRate);
+      document.getElementById('yearlyRate').textContent = formatCurrency(yearlySalary);
+      
+      document.getElementById('totalHours').textContent = formatNumber(totalHours) + ' hrs';
+      document.getElementById('perMinute').textContent = '$' + (hourlyRate / 60).toFixed(2);
+      document.getElementById('minWageRatio').textContent = (hourlyRate / MIN_WAGE_US).toFixed(1) + 'x';
+      document.getElementById('coffeeTime').textContent = Math.ceil(5 / (hourlyRate / 60)) + ' min';
+    }
+  </script>
+</body>
+</html>

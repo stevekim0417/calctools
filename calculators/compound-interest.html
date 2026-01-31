@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compound Interest Calculator - Calculate Investment Growth | CalcTools</title>
+  <meta name="description" content="Free compound interest calculator. See how your savings grow over time with daily, monthly, or yearly compounding. Includes monthly contribution options.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+  <style>
+    .chart-container { margin-top: 25px; height: 200px; }
+    .bar-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 180px; }
+    .bar-wrapper { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 50px; }
+    .bar { width: 100%; max-width: 30px; background: linear-gradient(180deg, #667eea, #764ba2); border-radius: 4px 4px 0 0; transition: height 0.5s ease; }
+    .bar-label { font-size: 0.65rem; color: rgba(255,255,255,0.7); margin-top: 8px; }
+    .formula { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; font-family: monospace; text-align: center; margin: 15px 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <a href="../" class="logo">🧮 CalcTools</a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="../">Home</a></li>
+          <li><a href="compound-interest.html">Compound Interest</a></li>
+          <li><a href="salary-to-hourly.html">Salary</a></li>
+          <li><a href="us-tax-2026.html">Tax 2026</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-header">
+    <h1>💰 Compound Interest Calculator</h1>
+    <p>See how your money grows over time</p>
+  </div>
+
+  <main class="container">
+    <div class="card">
+      <div class="input-group">
+        <label>Initial Investment ($)</label>
+        <input type="text" id="principal" placeholder="10,000" inputmode="numeric">
+      </div>
+      
+      <div class="row">
+        <div class="input-group">
+          <label>Annual Interest Rate (%)</label>
+          <input type="number" id="rate" placeholder="7" step="0.1">
+        </div>
+        <div class="input-group">
+          <label>Time Period (Years)</label>
+          <input type="number" id="years" placeholder="10" min="1" max="50">
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="input-group">
+          <label>Compound Frequency</label>
+          <select id="compound">
+            <option value="365">Daily</option>
+            <option value="12" selected>Monthly</option>
+            <option value="4">Quarterly</option>
+            <option value="1">Annually</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Monthly Contribution ($)</label>
+          <input type="text" id="monthly" placeholder="500" inputmode="numeric">
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    </div>
+    
+    <div class="result-card hidden" id="resultCard">
+      <div class="result-header">
+        <div class="result-label">Future Value</div>
+        <div class="result-value" id="finalAmount">$0</div>
+      </div>
+      
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="result-item-value" id="totalPrincipal">$0</div>
+          <div class="result-item-label">Total Deposits</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="totalInterest">$0</div>
+          <div class="result-item-label">Total Interest</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="roi">0%</div>
+          <div class="result-item-label">Total Return</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-value" id="interestRatio">0%</div>
+          <div class="result-item-label">Interest / Total</div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="info-box">
+        <h3>📊 What is Compound Interest?</h3>
+        <p>Compound interest is interest calculated on both the initial principal and the accumulated interest. It's the reason why starting to invest early matters so much.</p>
+        <div class="formula">A = P(1 + r/n)<sup>nt</sup></div>
+        <p><strong>Where:</strong> A = Final amount, P = Principal, r = Annual rate, n = Compounds per year, t = Years</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CalcTools. Free online calculators for everyone.</p>
+  </footer>
+
+  <script>
+    function formatNumber(num) { return Math.round(num).toLocaleString('en-US'); }
+    function formatCurrency(num) { return '$' + formatNumber(num); }
+    function parseNumber(str) { return parseFloat(str.replace(/[^0-9.-]/g, '')) || 0; }
+    
+    document.querySelectorAll('#principal, #monthly').forEach(input => {
+      input.addEventListener('input', function() {
+        let value = this.value.replace(/[^0-9]/g, '');
+        if (value) this.value = parseInt(value).toLocaleString('en-US');
+      });
+    });
+    
+    function calculate() {
+      const P = parseNumber(document.getElementById('principal').value);
+      const r = parseFloat(document.getElementById('rate').value) / 100;
+      const t = parseInt(document.getElementById('years').value);
+      const n = parseInt(document.getElementById('compound').value);
+      const monthly = parseNumber(document.getElementById('monthly').value);
+      
+      if (!P || !r || !t) { alert('Please enter principal, rate, and years.'); return; }
+      
+      let yearlyData = [];
+      for (let year = 1; year <= t; year++) {
+        const periods = n * year;
+        const rate = r / n;
+        let principalGrowth = P * Math.pow(1 + rate, periods);
+        let monthlyGrowth = 0;
+        if (monthly > 0) {
+          const monthlyRate = r / 12;
+          const months = year * 12;
+          monthlyGrowth = monthly * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+        }
+        yearlyData.push({ year, total: principalGrowth + monthlyGrowth, principal: P + (monthly * 12 * year) });
+      }
+      
+      const finalData = yearlyData[yearlyData.length - 1];
+      const totalPrincipal = finalData.principal;
+      const totalInterest = finalData.total - totalPrincipal;
+      const roi = ((finalData.total - totalPrincipal) / totalPrincipal * 100);
+      const interestRatio = (totalInterest / finalData.total * 100);
+      
+      document.getElementById('resultCard').classList.remove('hidden');
+      document.getElementById('finalAmount').textContent = formatCurrency(finalData.total);
+      document.getElementById('totalPrincipal').textContent = formatCurrency(totalPrincipal);
+      document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
+      document.getElementById('roi').textContent = roi.toFixed(1) + '%';
+      document.getElementById('interestRatio').textContent = interestRatio.toFixed(1) + '%';
+      
+      drawChart(yearlyData);
+    }
+    
+    function drawChart(data) {
+      const chart = document.getElementById('barChart');
+      chart.innerHTML = '';
+      const maxValue = Math.max(...data.map(d => d.total));
+      let displayData = data.length > 10 ? data.filter((_, i) => i % Math.ceil(data.length / 10) === 0 || i === data.length - 1) : data;
+      
+      displayData.forEach((d, i) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'bar-wrapper';
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = '0px';
+        const label = document.createElement('div');
+        label.className = 'bar-label';
+        label.textContent = 'Yr ' + d.year;
+        wrapper.appendChild(bar);
+        wrapper.appendChild(label);
+        chart.appendChild(wrapper);
+        setTimeout(() => { bar.style.height = (d.total / maxValue * 150) + 'px'; }, i * 50);
+      });
+    }
+  </script>
+</body>
+</html>
