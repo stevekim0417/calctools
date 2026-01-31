@@ -14,6 +14,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+  scroll-padding-top: 70px; /* Header height offset for anchor links */
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
